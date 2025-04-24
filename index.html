@@ -15,7 +15,8 @@
             width: 400px !important;
             height: 400px !important;
         }
-        .loader {
+        /* Schöner Ladebalken */
+        #global-loader {
             width: 100%;
             height: 50px;
             display: flex;
@@ -23,25 +24,46 @@
             align-items: center;
             background-color: #f0f0f0;
             margin-bottom: 1rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
         }
-        .progress {
+
+        .progress-bar {
             width: 80%;
             height: 10px;
             background-color: #ddd;
             position: relative;
+            border-radius: 5px;
+            overflow: hidden;
         }
-        .progress::after {
-            content: '';
+
+        .progress-bar-fill {
             display: block;
             height: 100%;
             width: 0;
             background-color: #66c2a5;
-            animation: load 3s linear infinite;
+            animation: fill 5s linear forwards;
+            border-radius: 5px;
         }
-        @keyframes load {
+
+        @keyframes fill {
             0% { width: 0%; }
             100% { width: 100%; }
         }
+
+        /* Versteckt den Ladebalken, wenn der Klassifikator geladen ist */
+        #global-loader.hidden {
+            display: none;
+        }
+
+        /* Standard Tabs Styling */
+        .tabs-content {
+            margin-top: 60px; /* Damit der Ladebalken oben nicht den Inhalt verdeckt */
+        }
+
     </style>
 </head>
 <body>
@@ -55,35 +77,41 @@
 
 <div class="column row">
     <hr>
-    <ul class="tabs" data-tabs id="example-tabs">
+
+    <ul class="tabs" data-tabs id="tabs">
         <li class="tabs-title is-active"><a href="#tab-korrekt" aria-selected="true">Korrekt</a></li>
         <li class="tabs-title"><a href="#tab-falsch">Falsch</a></li>
-        <!-- Neuer Tab-Eintrag -->
         <li class="tabs-title"><a href="#tab-upload">Upload</a></li>
     </ul>
 
+    <!-- Ladebalken für alle Tabs -->
+    <div class="loader" id="global-loader">
+        <div class="progress-bar">
+            <div class="progress-bar-fill"></div>
+        </div>
+        <p>Lade Daten...</p>
+    </div>
     <!-- KORREKT -->
     <div class="tabs-panel is-active" id="tab-korrekt">
-        <div class="loader" id="loader-korrekt"><div class="progress"></div></div>
         <div id="korrekt-container"></div>
     </div>
 
     <!-- FALSCH -->
     <div class="tabs-panel" id="tab-falsch">
-        <div class="loader" id="loader-falsch"><div class="progress"></div></div>
         <div id="falsch-container"></div>
     </div>
 
-    <!-- Neuer Tab-Inhalt -->
+    <!-- UPLOAD -->
     <div class="tabs-panel" id="tab-upload">
-        <div class="loader" id="loader-upload" style="display: none;"><div class="progress"></div></div>
         <div id="upload-dropzone"
-             style="border: 2px dashed #aaa; padding: 2rem; text-align: center; margin-bottom: 1rem;">
+             style="border: 2px dashed #aaa; padding: 2rem; text-align: center; margin-bottom: 1rem; display:none;">
             <p>Ziehe ein Bild hierher oder klicke zum Hochladen.</p>
             <input type="file" id="upload-input" accept="image/*" style="display: none"/>
         </div>
         <div id="upload-container"></div>
     </div>
+
+
 
 </div>
 

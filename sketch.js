@@ -7,28 +7,33 @@ document.addEventListener("DOMContentLoaded", () => {
     const charts = {};
     const imgElements = {};
     const initializedGroups = new Set();
-
     let classifier;
 
-    ml5.imageClassifier('MobileNet', loaded => {
-        console.log('Klassifikator geladen.');
-        classifier = loaded;
+    const globalLoader = document.getElementById('global-loader');
+    const progressBarFill = document.querySelector('.progress-bar-fill');
 
+    // Initialisiere den Klassifikator
+    ml5.imageClassifier('MobileNet', loaded => {
+        classifier = loaded;
+        console.log('Klassifikator geladen.');
+
+        // Lade Tab-Listener und andere logische Prozesse
         setupTabListener();
 
-        // Lade initial den aktiven Tab (id ohne #tab-)
-        const initial = $('ul.tabs li.is-active a').attr('href').replace('#tab-', '');
-        if (initial === 'upload') {
-            setupUpload();
-        } else {
-            setupGroup(initial);
-        }
+        // Klassifikator ist bereit, zeige den Loader und starte den Ladeprozess
+        setTimeout(() => {
+            globalLoader.classList.add('hidden');
+            $('ul.tabs li.is-active a').click(); // Initialer Klick auf den aktiven Tab
+        }, 1000);
+
+        setupUploadClassifier(); // Upload-Tabs
     });
 
     function setupTabListener() {
         $('ul.tabs').on('change.zf.tabs', function () {
             const activeTabHref = $(this).find('li.is-active a').attr('href'); // z. B. #tab-upload
             const groupName = activeTabHref.replace('#tab-', '');
+
             if (!initializedGroups.has(groupName)) {
                 if (groupName === 'upload') {
                     setupUpload();
@@ -48,7 +53,11 @@ document.addEventListener("DOMContentLoaded", () => {
         initializedGroups.add(groupName);
 
         const container = document.getElementById(`${groupName}-container`);
-        const loader = document.getElementById(`loader-${groupName}`);
+        if (!container) {
+            console.error(`Container für Gruppe ${groupName} nicht gefunden.`);
+            return;
+        }
+
         const basePath = `images/${groupName}/`;
 
         imageGroups[groupName].forEach((filename, i) => {
@@ -80,9 +89,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             img.onload = () => {
                 classifyAndShow(index, img, canvas);
-                if (i === imageGroups[groupName].length - 1) {
-                    loader.style.display = 'none';
-                }
             };
         });
     }
@@ -114,31 +120,33 @@ document.addEventListener("DOMContentLoaded", () => {
             .catch(err => console.error(`Fehler bei Klassifikation (${index}):`, err));
     }
 
-    function setupUpload() {
+    function setupUploadClassifier() {
+        if (initializedGroups.has('upload')) return;
         initializedGroups.add('upload');
 
         const container = document.getElementById('upload-container');
-        const loader = document.getElementById('loader-upload');
-        loader.style.display = 'none'; // sicherstellen, dass er wirklich aus bleibt
-
-
         const dropZone = document.getElementById('upload-dropzone');
-        // dropZone.id = 'dropzone';
-        // dropZone.textContent = 'Ziehe ein Bild hierher oder klicke zum Hochladen';
-        // dropZone.style.border = '2px dashed #ccc';
-        // dropZone.style.padding = '40px';
-        // dropZone.style.textAlign = 'center';
-        // dropZone.style.cursor = 'pointer';
-
         const fileInput = document.getElementById('upload-input');
-        //fileInput.type = 'file';
-        //fileInput.accept = 'image/*';
-        //fileInput.style.display = 'none';
 
+        // Zeige den Ladebalken an, während der Upload-Bereich geladen wird
+        globalLoader.classList.remove('hidden');
+        progressBarFill.style.animation = 'none';  // Ladeanimation stoppen
+        progressBarFill.style.width = '0';  // Setze den Ladebalken auf 0%
+        setTimeout(() => {
+            // Ladeanimation wieder starten
+            progressBarFill.style.animation = 'fill 5s linear forwards';
+        }, 100);
+
+        // Zeige den Upload-Bereich erst nach dem Laden des Klassifikators und des Ladebalkens
+        setTimeout(() => {
+            dropZone.style.display = 'block';
+            globalLoader.classList.add('hidden'); // Verstecke den Ladebalken
+        }, 3000); // Verzögere das Anzeigen des Upload-Bereichs, um den Ladebalken sichtbar zu machen
+
+        // Upload-Event-Listener
         dropZone.addEventListener('click', () => fileInput.click());
 
         dropZone.addEventListener('dragover', e => {
-            console.log("HALLO!");
             e.preventDefault();
             dropZone.style.borderColor = '#66c2a5';
         });
@@ -158,46 +166,62 @@ document.addEventListener("DOMContentLoaded", () => {
             const file = fileInput.files[0];
             if (file) handleFile(file);
         });
+    }
 
-        //container.appendChild(dropZone);
-        //container.appendChild(fileInput);
-
-        function handleFile(file) {
-            loader.style.display = 'block';
-
-            const reader = new FileReader();
-            reader.onload = () => {
+    function handleFile(file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const img = new Image();
+            img.src = reader.result;
+            img.onload = () => {
+                // Erstelle ein neues Container-Element für das Bild und das Chart
                 const row = document.createElement('div');
                 row.className = 'row';
 
+                // Bild anzeigen
                 const leftCol = document.createElement('div');
                 leftCol.className = 'column medium-6';
+                leftCol.appendChild(img);
+                row.appendChild(leftCol);
+
+                // Chart erstellen
                 const rightCol = document.createElement('div');
                 rightCol.className = 'column medium-6';
+                const chartCanvas = document.createElement('canvas');
+                chartCanvas.width = 400;
+                chartCanvas.height = 400;
+                rightCol.appendChild(chartCanvas);
+                row.appendChild(rightCol);
 
-                const img = new Image();
-                img.src = reader.result;
-                img.width = 400;
-                img.onload = () => {
-                    const index = `upload-${Date.now()}`;
-                    imgElements[index] = img;
+                // Füge den neuen Container zum Upload-Bereich hinzu
+                document.getElementById('upload-container').appendChild(row);
 
-                    const canvas = document.createElement('canvas');
-                    canvas.width = 400;
-                    canvas.height = 400;
+                // Klassifikation des hochgeladenen Bildes und Chart erzeugen
+                classifier.classify(img)
+                    .then(results => {
+                        const labels = results.map(r => r.label);
+                        const confidences = results.map(r => r.confidence);
 
-                    classifyAndShow(index, img, canvas);
-                    loader.style.display = 'none';
-
-                    leftCol.appendChild(img);
-                    rightCol.appendChild(canvas);
-
-                    row.appendChild(leftCol);
-                    row.appendChild(rightCol);
-                    container.appendChild(row);
-                };
+                        new Chart(chartCanvas, {
+                            type: 'pie',
+                            data: {
+                                labels,
+                                datasets: [{
+                                    label: 'Confidence',
+                                    data: confidences,
+                                    backgroundColor: ['#66c2a5', '#fc8d62', '#8da0cb']
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                animation: { animateScale: true }
+                            }
+                        });
+                    })
+                    .catch(err => console.error('Fehler bei Klassifikation:', err));
             };
-            reader.readAsDataURL(file);
-        }
+        };
+        reader.readAsDataURL(file);
     }
+
 });
