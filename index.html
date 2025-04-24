@@ -1,25 +1,14 @@
-<!--
-  👋 Hello! This is an ml5.js example made and shared with ❤️.
-  Learn more about the ml5.js project: https://ml5js.org/
-  ml5.js license and Code of Conduct: https://github.com/ml5js/ml5-next-gen/blob/main/LICENSE.md
-
-  This example demonstrates detecting objects in an image through ml5.imageClassifier.
--->
-
 <!doctype html>
-<html class="no-js" lang="en">
+<html class="no-js" lang="de">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-
-    <title>Deep Learning EA1 by Friederike Buchner</title>
+    <title>Image Classification</title>
     <link rel="stylesheet" href="https://dhbhdrzi4tiry.cloudfront.net/cdn/sites/foundation.min.css">
 </head>
 <body>
 
-
-<!-- Start Top Bar -->
+<!-- Top Bar -->
 <div class="top-bar">
     <div class="row">
         <div class="top-bar-left">
@@ -27,143 +16,44 @@
         </div>
         <div class="top-bar-right">
             <p>Friederike Buchner</p>
-            <p>Sommersemester 2025</p>
         </div>
-        <!--div class="top-bar-left">
-            <ul class="dropdown menu" data-dropdown-menu>
-                <li class="menu-text">Yeti Store</li>
-                <li class="has-submenu">
-                    <a href="#">One</a>
-                    <ul class="submenu menu vertical" data-submenu>
-                        <li><a href="#">One</a></li>
-                        <li><a href="#">Two</a></li>
-                        <li><a href="#">Three</a></li>
-                    </ul>
-                </li>
-                <li><a href="#">Two</a></li>
-                <li><a href="#">Three</a></li>
-            </ul>
-        </div>
-        <div class="top-bar-right">
-            <ul class="menu">
-                <li><input type="search" placeholder="Search"></li>
-                <li><button type="button" class="button">Search</button></li>
-            </ul>
-        </div-->
     </div>
 </div>
-<!-- End Top Bar -->
-<br>
-<!-- You can now combine a row and column if you just need a 12 column row -->
-<!--div class="row columns">
-    <nav aria-label="You are here:" role="navigation">
-        <ul class="breadcrumbs">
-            <li><a href="#">Home</a></li>
-            <li><a href="#">Features</a></li>
-            <li class="disabled">Gene Splicing</li>
-            <li>
-                <span class="show-for-sr">Current: </span> Cloning
-            </li>
-        </ul>
-    </nav>
-</div-->
 
 <div class="column row">
     <hr>
+
+    <!-- Tabs -->
     <ul class="tabs" data-tabs id="example-tabs">
         <li class="tabs-title is-active"><a href="#panel1" aria-selected="true">Beispielbild 1</a></li>
         <li class="tabs-title"><a href="#panel2">Beispielbild 2</a></li>
         <li class="tabs-title"><a href="#panel3">Beispielbild 3</a></li>
-        <li class="tabs-title"><a href="#panel4">Bildupload</a></li>
     </ul>
+
+    <!-- Tab-Panels -->
     <div class="tabs-content" data-tabs-content="example-tabs">
         <div class="tabs-panel is-active" id="panel1">
-            <div class="row">
-                <div class="medium-6 columns">
-                    <div class="col-md-6">
-                        <h3>Beispielbild 1</h3>
-                        <div id="ml5-canvas-container">
-                            <!-- Canvas here -->
-                            <!-- Hier kommt p5.js-Canvas hin -->
-                            <!-- Button für Klassifizierung (zunächst versteckt) -->
-                        </div>
-                        <button id="classifyButton" style="display: none; margin-top: 1rem;">
-                            Bild klassifizieren
-                        </button>
-                    </div>
-
-                </div>
-                <div class="medium-6 large-5 columns">
-                    <!-- Auswertung here -->
-                    <div class="col-md-6">
-                        <h3>Konfidenzen</h3>
-                        <div id="ml5-confidence-container">
-                            <canvas id="confidenceChart" width="300" height="300"></canvas>
-                        </div>
-                    </div>
-
-                </div>
+            <div class="grid-x grid-margin-x">
+                <div class="cell medium-6" id="canvas-container-1"></div>
+                <div class="cell medium-6"><canvas id="confidenceChart-1"></canvas></div>
             </div>
         </div>
-        <div class="tabs-panel is-active" id="panel2">
-            <div class="row">
-                <div class="medium-6 columns">
-                    <div class="col-md-6">
-                        <h3>Beispielbild 2</h3>
-                        <div id="ml5-canvas-container">
-                            <!-- Canvas here -->
-                            <!-- Hier kommt p5.js-Canvas hin -->
-                            <!-- Button für Klassifizierung (zunächst versteckt) -->
-                        </div>
-                        <button id="classifyButton" style="display: none; margin-top: 1rem;">
-                            Bild klassifizieren
-                        </button>
-                    </div>
-
-                </div>
-                <div class="medium-6 large-5 columns">
-                    <!-- Auswertung here -->
-                    <div class="col-md-6">
-                        <h3>Konfidenzen</h3>
-                        <div id="ml5-confidence-container">
-                            <canvas id="confidenceChart" width="300" height="300"></canvas>
-                        </div>
-                    </div>
-
-                </div>
+        <div class="tabs-panel" id="panel2">
+            <div class="grid-x grid-margin-x">
+                <div class="cell medium-6" id="canvas-container-2"></div>
+                <div class="cell medium-6"><canvas id="confidenceChart-2"></canvas></div>
             </div>
         </div>
-        <div class="tabs-panel is-active" id="panel3">
-            <div class="row">
-                <div class="medium-6 columns">
-                    <div class="col-md-6">
-                        <h3>Beispielbild 3</h3>
-                        <div id="ml5-canvas-container">
-                            <!-- Canvas here -->
-                            <!-- Hier kommt p5.js-Canvas hin -->
-                            <!-- Button für Klassifizierung (zunächst versteckt) -->
-                        </div>
-                        <button id="classifyButton" style="display: none; margin-top: 1rem;">
-                            Bild klassifizieren
-                        </button>
-                    </div>
-
-                </div>
-                <div class="medium-6 large-5 columns">
-                    <!-- Auswertung here -->
-                    <div class="col-md-6">
-                        <h3>Konfidenzen</h3>
-                        <div id="ml5-confidence-container">
-                            <canvas id="confidenceChart" width="300" height="300"></canvas>
-                        </div>
-                    </div>
-
-                </div>
+        <div class="tabs-panel" id="panel3">
+            <div class="grid-x grid-margin-x">
+                <div class="cell medium-6" id="canvas-container-3"></div>
+                <div class="cell medium-6"><canvas id="confidenceChart-3"></canvas></div>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Footer -->
 <div class="row column">
     <hr>
     <ul class="menu">
@@ -171,23 +61,17 @@
         <li><a href="#">Home</a></li>
         <li><a href="#">About</a></li>
         <li><a href="#">Contact</a></li>
-        <li class="float-right">Copyright 2016</li>
+        <li class="float-right">© 2025</li>
     </ul>
 </div>
 
-
-
+<!-- Scripts -->
 <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
 <script src="https://dhbhdrzi4tiry.cloudfront.net/cdn/sites/foundation.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.min.js"></script>
 <script src="https://unpkg.com/ml5@1/dist/ml5.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="sketch.js"></script>
-<script>
-    $(document).foundation();
-</script>
+<script>$(document).foundation();</script>
 </body>
 </html>
-
-
-
