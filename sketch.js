@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const charts = [];
     const imgElements = [];
+    const loadingBars = [];
 
     const classifier = ml5.imageClassifier('MobileNet', () => {
         console.log('Klassifikator geladen.');
@@ -53,17 +54,29 @@ document.addEventListener("DOMContentLoaded", () => {
             const container = document.querySelector(`#canvas-container-${index + 1}`);
             container.innerHTML = '';
 
+            const loader = document.querySelector(`#loader-${index + 1}`);
+            loadingBars[index] = loader;
+
             const img = new Image();
             img.src = src;
-            img.width = 300;
+            img.width = 400;
+            img.height = 400;
+            img.id = `image-${index + 1}`;
+            img.classList.add('hidden');
 
             img.onload = () => {
-                container.appendChild(img);
+                // Ladebalken ausblenden
+                loader.style.display = 'none';
+
+                // Bild sichtbar machen
+                img.classList.remove('hidden');
                 imgElements[index] = img;
 
-                // Klassifiziere sofort Bild 1 (Tab 1)
+                container.appendChild(img);
+
                 if (index === 0) classifyAndShow(index);
             };
+
         });
 
         // Foundation Tabs aktivieren
