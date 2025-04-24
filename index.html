@@ -15,54 +15,43 @@
             width: 400px !important;
             height: 400px !important;
         }
-        /* Schöner Ladebalken */
-        #global-loader {
-            width: 100%;
-            height: 50px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #f0f0f0;
-            margin-bottom: 1rem;
+        /* Splashscreen-Styles */
+        .splashscreen {
             position: fixed;
             top: 0;
             left: 0;
-            right: 0;
-            z-index: 1000;
-        }
-
-        .progress-bar {
-            width: 80%;
-            height: 10px;
-            background-color: #ddd;
-            position: relative;
-            border-radius: 5px;
-            overflow: hidden;
-        }
-
-        .progress-bar-fill {
-            display: block;
+            width: 100%;
             height: 100%;
-            width: 0;
-            background-color: #66c2a5;
-            animation: fill 5s linear forwards;
-            border-radius: 5px;
+            background-color: rgba(255, 255, 255, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999; /* Überlagert den restlichen Inhalt */
         }
 
-        @keyframes fill {
-            0% { width: 0%; }
-            100% { width: 100%; }
+        .splash-content {
+            text-align: center;
         }
 
-        /* Versteckt den Ladebalken, wenn der Klassifikator geladen ist */
-        #global-loader.hidden {
-            display: none;
+        .splash-content h1 {
+            font-size: 2rem;
+            margin-bottom: 20px;
         }
 
-        /* Standard Tabs Styling */
-        .tabs-content {
-            margin-top: 60px; /* Damit der Ladebalken oben nicht den Inhalt verdeckt */
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #66c2a5;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 2s linear infinite;
         }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
 
     </style>
 </head>
@@ -84,13 +73,14 @@
         <li class="tabs-title"><a href="#tab-upload">Upload</a></li>
     </ul>
 
-    <!-- Ladebalken für alle Tabs -->
-    <div class="loader" id="global-loader">
-        <div class="progress-bar">
-            <div class="progress-bar-fill"></div>
+    <!-- Splashscreen -->
+    <div id="splashscreen" class="splashscreen">
+        <div class="splash-content">
+            <h1>Image Classification - Deep Learning EA1</h1>
+            <div class="spinner"></div>
         </div>
-        <p>Lade Daten...</p>
     </div>
+
     <!-- KORREKT -->
     <div class="tabs-panel is-active" id="tab-korrekt">
         <div id="korrekt-container"></div>
@@ -104,7 +94,7 @@
     <!-- UPLOAD -->
     <div class="tabs-panel" id="tab-upload">
         <div id="upload-dropzone"
-             style="border: 2px dashed #aaa; padding: 2rem; text-align: center; margin-bottom: 1rem; display:none;">
+             style="border: 2px dashed #aaa; padding: 2rem; text-align: center; margin-bottom: 1rem;">
             <p>Ziehe ein Bild hierher oder klicke zum Hochladen.</p>
             <input type="file" id="upload-input" accept="image/*" style="display: none"/>
         </div>

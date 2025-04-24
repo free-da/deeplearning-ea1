@@ -7,104 +7,87 @@ document.addEventListener("DOMContentLoaded", () => {
     const charts = {};
     const imgElements = {};
     const initializedGroups = new Set();
+
     let classifier;
 
-    const globalLoader = document.getElementById('global-loader');
-    const progressBarFill = document.querySelector('.progress-bar-fill');
+    // Zeige den Splashscreen an
+    const splashscreen = document.getElementById('splashscreen');
+    const tabsContainer = $('ul.tabs');
+    const uploadTab = $('#tab-upload');
 
-    // Initialisiere den Klassifikator
+    // Lade den MobileNet-Klassifikator
     ml5.imageClassifier('MobileNet', loaded => {
-        classifier = loaded;
         console.log('Klassifikator geladen.');
+        classifier = loaded;
 
-        // Lade Tab-Listener und andere logische Prozesse
+        // Verstecke den Splashscreen, wenn der Klassifikator fertig geladen ist
+        splashscreen.style.display = 'none';
+
+        // Bereite die Tabs vor und stelle sicher, dass die Bilder und Charts richtig geladen werden
         setupTabListener();
 
-        // Klassifikator ist bereit, zeige den Loader und starte den Ladeprozess
-        setTimeout(() => {
-            globalLoader.classList.add('hidden');
-            $('ul.tabs li.is-active a').click(); // Initialer Klick auf den aktiven Tab
-        }, 1000);
+        // Initialisiere den aktiven Tab (ohne #tab-)
+        const initialTab = tabsContainer.find('li.is-active a').attr('href').replace('#tab-', '');
+        console.log(initialTab);
+        console.log(tabsContainer);
+        if (initialTab !== 'upload') {
+            setupGroup(initialTab);
+        }
 
-        setupUploadClassifier(); // Upload-Tabs
+        setupUploadClassifier(); // Upload-Tab immer verfügbar
+        uploadUISetup(); // Upload-Dropzone direkt aktivieren!
     });
 
-    function setupTabListener() {
-        $('ul.tabs').on('change.zf.tabs', function () {
-            const activeTabHref = $(this).find('li.is-active a').attr('href'); // z. B. #tab-upload
-            const groupName = activeTabHref.replace('#tab-', '');
+    // Diese Funktion stellt sicher, dass die Bilder und die Charts korrekt geladen werden
+    function setupGroup(group) {
+        if (initializedGroups.has(group)) return;
+        initializedGroups.add(group);
 
-            if (!initializedGroups.has(groupName)) {
-                if (groupName === 'upload') {
-                    setupUpload();
-                } else {
-                    setupGroup(groupName);
-                }
-            }
-        });
-    }
+        const images = imageGroups[group];
+        const container = $(`#tab-${group} #${group}-container`); // Direkt auf den Container im Tab zugreifen
 
-    function setupGroup(groupName) {
-        if (!imageGroups[groupName]) {
-            console.error(`Unbekannte Gruppe: ${groupName}`);
-            return;
-        }
-
-        initializedGroups.add(groupName);
-
-        const container = document.getElementById(`${groupName}-container`);
-        if (!container) {
-            console.error(`Container für Gruppe ${groupName} nicht gefunden.`);
-            return;
-        }
-
-        const basePath = `images/${groupName}/`;
-
-        imageGroups[groupName].forEach((filename, i) => {
-            const index = `${groupName}-${i}`;
-            const row = document.createElement('div');
-            row.className = 'row';
-
-            const leftCol = document.createElement('div');
-            leftCol.className = 'column medium-6';
-            const rightCol = document.createElement('div');
-            rightCol.className = 'column medium-6';
-
+        // Bilder hinzufügen
+        images.forEach((src, index) => {
             const img = new Image();
-            img.src = basePath + filename;
-            img.width = 400;
-            img.id = `image-${index}`;
-            imgElements[index] = img;
-            leftCol.appendChild(img);
-
-            const canvas = document.createElement('canvas');
-            canvas.id = `chart-${index}`;
-            canvas.width = 400;
-            canvas.height = 400;
-            rightCol.appendChild(canvas);
-
-            row.appendChild(leftCol);
-            row.appendChild(rightCol);
-            container.appendChild(row);
+            img.src = `images/${group}/${src}`;
+            img.width = 300;
 
             img.onload = () => {
-                classifyAndShow(index, img, canvas);
+                // Dynamische Zeile mit Bild und Canvas erstellen
+                const row = $('<div class="row"></div>');
+                const imgContainer = $('<div class="column medium-6"></div>').append(img);
+                const chartContainer = $('<div class="column medium-6"></div>');
+                const canvas = $('<canvas></canvas>', { width: 400, height: 400 }).get(0); // Canvas ohne ID
+                chartContainer.append(canvas);
+                row.append(imgContainer).append(chartContainer);
+
+                // Das Bild und der Canvas in den Container hinzufügen
+                container.append(row);
+
+                imgElements[index] = img;
+
+                // Klassifizieren und Diagramm anzeigen, wenn das Bild geladen wurde
+                classifyAndShow(group, index, img, canvas);
             };
         });
     }
 
-    function classifyAndShow(index, img, canvas) {
+
+
+
+    // Klassifizieren und Diagramm anzeigen
+    function classifyAndShow(group, index, img, canvas) {
+        // Klassifikationslogik wie gehabt
         classifier.classify(img)
             .then(results => {
                 const labels = results.map(r => r.label);
                 const confidences = results.map(r => r.confidence);
 
-                if (charts[index]) charts[index].destroy();
-
-                charts[index] = new Chart(canvas, {
+                const ctx = canvas.getContext('2d');
+                const chart = new Chart(ctx, {
                     type: 'pie',
                     data: {
-                        labels,
+                        labels: labels,
                         datasets: [{
                             label: 'Confidence',
                             data: confidences,
@@ -117,111 +100,78 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 });
             })
-            .catch(err => console.error(`Fehler bei Klassifikation (${index}):`, err));
+            .catch(err => {
+                console.error('Fehler bei Klassifikation:', err);
+            });
     }
 
+    // Event-Listener für Tab-Wechsel
+    function setupTabListener() {
+        tabsContainer.on('change.zf.tabs', function (event) {
+            const activeTabHref = $(this).find('li.is-active a').attr('href'); // z. B. #panel2
+            const group = activeTabHref.replace('#tab-', '');
+
+            if (!isNaN(group)) {
+                setupGroup(group); // Läd die Bilder und zeigt sie an
+            } else if (group === 'upload') {
+                setupUploadClassifier(); // Stellen Sie sicher, dass der Upload-Tab richtig funktioniert
+            } else {
+                setupGroup(group); // Wenn es sich um einen anderen Tab handelt (korrekt/falsch)
+            }
+        });
+    }
+
+    // Setup für den Upload-Tab
     function setupUploadClassifier() {
-        if (initializedGroups.has('upload')) return;
-        initializedGroups.add('upload');
+        const uploadContainer = $('#upload-container');
+        const uploadButton = $('#upload-button');
+        const fileInput = $('#file-input');
 
-        const container = document.getElementById('upload-container');
-        const dropZone = document.getElementById('upload-dropzone');
-        const fileInput = document.getElementById('upload-input');
-
-        // Zeige den Ladebalken an, während der Upload-Bereich geladen wird
-        globalLoader.classList.remove('hidden');
-        progressBarFill.style.animation = 'none';  // Ladeanimation stoppen
-        progressBarFill.style.width = '0';  // Setze den Ladebalken auf 0%
-        setTimeout(() => {
-            // Ladeanimation wieder starten
-            progressBarFill.style.animation = 'fill 5s linear forwards';
-        }, 100);
-
-        // Zeige den Upload-Bereich erst nach dem Laden des Klassifikators und des Ladebalkens
-        setTimeout(() => {
-            dropZone.style.display = 'block';
-            globalLoader.classList.add('hidden'); // Verstecke den Ladebalken
-        }, 3000); // Verzögere das Anzeigen des Upload-Bereichs, um den Ladebalken sichtbar zu machen
-
-        // Upload-Event-Listener
-        dropZone.addEventListener('click', () => fileInput.click());
-
-        dropZone.addEventListener('dragover', e => {
-            e.preventDefault();
-            dropZone.style.borderColor = '#66c2a5';
+        // Dateiauswahl und Upload anzeigen
+        fileInput.on('change', function () {
+            const file = fileInput[0].files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = new Image();
+                    img.src = e.target.result;
+                    img.onload = function () {
+                        uploadContainer.append(img);
+                        classifyAndShow('upload', 0); // Klassifizieren nach dem Laden des Bildes
+                    };
+                };
+                reader.readAsDataURL(file);
+            }
         });
 
-        dropZone.addEventListener('dragleave', () => {
-            dropZone.style.borderColor = '#ccc';
-        });
-
-        dropZone.addEventListener('drop', e => {
-            e.preventDefault();
-            dropZone.style.borderColor = '#ccc';
-            const file = e.dataTransfer.files[0];
-            if (file) handleFile(file);
-        });
-
-        fileInput.addEventListener('change', () => {
-            const file = fileInput.files[0];
-            if (file) handleFile(file);
+        uploadButton.on('click', function () {
+            fileInput.click(); // Öffne das Datei-Auswahl-Fenster
         });
     }
 
-    function handleFile(file) {
-        const reader = new FileReader();
-        reader.onload = () => {
-            const img = new Image();
-            img.src = reader.result;
-            img.onload = () => {
-                // Erstelle ein neues Container-Element für das Bild und das Chart
-                const row = document.createElement('div');
-                row.className = 'row';
-
-                // Bild anzeigen
-                const leftCol = document.createElement('div');
-                leftCol.className = 'column medium-6';
-                leftCol.appendChild(img);
-                row.appendChild(leftCol);
-
-                // Chart erstellen
-                const rightCol = document.createElement('div');
-                rightCol.className = 'column medium-6';
-                const chartCanvas = document.createElement('canvas');
-                chartCanvas.width = 400;
-                chartCanvas.height = 400;
-                rightCol.appendChild(chartCanvas);
-                row.appendChild(rightCol);
-
-                // Füge den neuen Container zum Upload-Bereich hinzu
-                document.getElementById('upload-container').appendChild(row);
-
-                // Klassifikation des hochgeladenen Bildes und Chart erzeugen
-                classifier.classify(img)
-                    .then(results => {
-                        const labels = results.map(r => r.label);
-                        const confidences = results.map(r => r.confidence);
-
-                        new Chart(chartCanvas, {
-                            type: 'pie',
-                            data: {
-                                labels,
-                                datasets: [{
-                                    label: 'Confidence',
-                                    data: confidences,
-                                    backgroundColor: ['#66c2a5', '#fc8d62', '#8da0cb']
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                animation: { animateScale: true }
-                            }
-                        });
-                    })
-                    .catch(err => console.error('Fehler bei Klassifikation:', err));
-            };
-        };
-        reader.readAsDataURL(file);
+    // Upload-Dropzone aktivieren
+    function uploadUISetup() {
+        const uploadTabContent = $('#tab-upload');
+        uploadTabContent.find('.drop-zone').on('dragover', function (e) {
+            e.preventDefault(); // Verhindere das Standardverhalten
+            $(this).addClass('drag-over');
+        }).on('dragleave', function () {
+            $(this).removeClass('drag-over');
+        }).on('drop', function (e) {
+            e.preventDefault();
+            const file = e.originalEvent.dataTransfer.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = new Image();
+                    img.src = e.target.result;
+                    img.onload = function () {
+                        $(this).parent().append(img);
+                        classifyAndShow('upload', 0); // Klassifizieren nach dem Laden des Bildes
+                    };
+                };
+                reader.readAsDataURL(file);
+            }
+        });
     }
-
 });
