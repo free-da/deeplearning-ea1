@@ -1,26 +1,93 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const images = [
-        'images/kitten.jpg',
-        'images/bird.jpg',
-        'images/red_panda.jpg'
-    ];
+    const imageGroups = {
+        korrekt: ['flamingo4.jpg', 'flamingo2.jpg', 'flamingo3.jpg'],
+        falsch: ['wellensittich.jpg', 'wellensittich2.jpg', 'wellensittich3.jpg'],
+    };
 
-    const charts = [];
-    const imgElements = [];
-    const loadingBars = [];
+    const charts = {};
+    const imgElements = {};
+    const initializedGroups = new Set();
 
-    const classifier = ml5.imageClassifier('MobileNet', () => {
+    let classifier;
+
+    ml5.imageClassifier('MobileNet', loaded => {
         console.log('Klassifikator geladen.');
-        setupTabs(); // Tabs vorbereiten, nachdem der Klassifikator bereit ist
+        classifier = loaded;
+
+        setupTabListener();
+
+        // Lade initial den aktiven Tab (id ohne #tab-)
+        const initial = $('ul.tabs li.is-active a').attr('href').replace('#tab-', '');
+        if (initial === 'upload') {
+            setupUpload();
+        } else {
+            setupGroup(initial);
+        }
     });
 
-    function classifyAndShow(index) {
-        const container = document.querySelector(`#canvas-container-${index + 1}`);
-        const chartCanvas = document.querySelector(`#confidenceChart-${index + 1}`);
+    function setupTabListener() {
+        $('ul.tabs').on('change.zf.tabs', function () {
+            const activeTabHref = $(this).find('li.is-active a').attr('href'); // z. B. #tab-upload
+            const groupName = activeTabHref.replace('#tab-', '');
+            if (!initializedGroups.has(groupName)) {
+                if (groupName === 'upload') {
+                    setupUpload();
+                } else {
+                    setupGroup(groupName);
+                }
+            }
+        });
+    }
 
-        const img = imgElements[index];
-        if (!img) return;
+    function setupGroup(groupName) {
+        if (!imageGroups[groupName]) {
+            console.error(`Unbekannte Gruppe: ${groupName}`);
+            return;
+        }
 
+        initializedGroups.add(groupName);
+
+        const container = document.getElementById(`${groupName}-container`);
+        const loader = document.getElementById(`loader-${groupName}`);
+        const basePath = `images/${groupName}/`;
+
+        imageGroups[groupName].forEach((filename, i) => {
+            const index = `${groupName}-${i}`;
+            const row = document.createElement('div');
+            row.className = 'row';
+
+            const leftCol = document.createElement('div');
+            leftCol.className = 'column medium-6';
+            const rightCol = document.createElement('div');
+            rightCol.className = 'column medium-6';
+
+            const img = new Image();
+            img.src = basePath + filename;
+            img.width = 400;
+            img.id = `image-${index}`;
+            imgElements[index] = img;
+            leftCol.appendChild(img);
+
+            const canvas = document.createElement('canvas');
+            canvas.id = `chart-${index}`;
+            canvas.width = 400;
+            canvas.height = 400;
+            rightCol.appendChild(canvas);
+
+            row.appendChild(leftCol);
+            row.appendChild(rightCol);
+            container.appendChild(row);
+
+            img.onload = () => {
+                classifyAndShow(index, img, canvas);
+                if (i === imageGroups[groupName].length - 1) {
+                    loader.style.display = 'none';
+                }
+            };
+        });
+    }
+
+    function classifyAndShow(index, img, canvas) {
         classifier.classify(img)
             .then(results => {
                 const labels = results.map(r => r.label);
@@ -28,10 +95,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 if (charts[index]) charts[index].destroy();
 
-                charts[index] = new Chart(chartCanvas, {
+                charts[index] = new Chart(canvas, {
                     type: 'pie',
                     data: {
-                        labels: labels,
+                        labels,
                         datasets: [{
                             label: 'Confidence',
                             data: confidences,
@@ -44,52 +111,93 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 });
             })
-            .catch(err => {
-                console.error('Fehler bei Klassifikation:', err);
-            });
+            .catch(err => console.error(`Fehler bei Klassifikation (${index}):`, err));
     }
 
-    function setupTabs() {
-        images.forEach((src, index) => {
-            const container = document.querySelector(`#canvas-container-${index + 1}`);
-            container.innerHTML = '';
+    function setupUpload() {
+        initializedGroups.add('upload');
 
-            const loader = document.querySelector(`#loader-${index + 1}`);
-            loadingBars[index] = loader;
+        const container = document.getElementById('upload-container');
+        const loader = document.getElementById('loader-upload');
+        loader.style.display = 'none'; // sicherstellen, dass er wirklich aus bleibt
 
-            const img = new Image();
-            img.src = src;
-            img.width = 400;
-            img.height = 400;
-            img.id = `image-${index + 1}`;
-            img.classList.add('hidden');
 
-            img.onload = () => {
-                // Ladebalken ausblenden
-                loader.style.display = 'none';
+        const dropZone = document.getElementById('upload-dropzone');
+        // dropZone.id = 'dropzone';
+        // dropZone.textContent = 'Ziehe ein Bild hierher oder klicke zum Hochladen';
+        // dropZone.style.border = '2px dashed #ccc';
+        // dropZone.style.padding = '40px';
+        // dropZone.style.textAlign = 'center';
+        // dropZone.style.cursor = 'pointer';
 
-                // Bild sichtbar machen
-                img.classList.remove('hidden');
-                imgElements[index] = img;
+        const fileInput = document.getElementById('upload-input');
+        //fileInput.type = 'file';
+        //fileInput.accept = 'image/*';
+        //fileInput.style.display = 'none';
 
-                container.appendChild(img);
+        dropZone.addEventListener('click', () => fileInput.click());
 
-                if (index === 0) classifyAndShow(index);
+        dropZone.addEventListener('dragover', e => {
+            console.log("HALLO!");
+            e.preventDefault();
+            dropZone.style.borderColor = '#66c2a5';
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.style.borderColor = '#ccc';
+        });
+
+        dropZone.addEventListener('drop', e => {
+            e.preventDefault();
+            dropZone.style.borderColor = '#ccc';
+            const file = e.dataTransfer.files[0];
+            if (file) handleFile(file);
+        });
+
+        fileInput.addEventListener('change', () => {
+            const file = fileInput.files[0];
+            if (file) handleFile(file);
+        });
+
+        //container.appendChild(dropZone);
+        //container.appendChild(fileInput);
+
+        function handleFile(file) {
+            loader.style.display = 'block';
+
+            const reader = new FileReader();
+            reader.onload = () => {
+                const row = document.createElement('div');
+                row.className = 'row';
+
+                const leftCol = document.createElement('div');
+                leftCol.className = 'column medium-6';
+                const rightCol = document.createElement('div');
+                rightCol.className = 'column medium-6';
+
+                const img = new Image();
+                img.src = reader.result;
+                img.width = 400;
+                img.onload = () => {
+                    const index = `upload-${Date.now()}`;
+                    imgElements[index] = img;
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 400;
+                    canvas.height = 400;
+
+                    classifyAndShow(index, img, canvas);
+                    loader.style.display = 'none';
+
+                    leftCol.appendChild(img);
+                    rightCol.appendChild(canvas);
+
+                    row.appendChild(leftCol);
+                    row.appendChild(rightCol);
+                    container.appendChild(row);
+                };
             };
-
-        });
-
-        // Foundation Tabs aktivieren
-        $(document).foundation();
-
-        // Richtiges Event-Handling für Tabs
-        $('ul.tabs').on('change.zf.tabs', function (event) {
-            const activeTabHref = $(this).find('li.is-active a').attr('href'); // z. B. #panel2
-            const index = parseInt(activeTabHref.replace('#panel', '')) - 1;
-
-            if (!isNaN(index)) {
-                classifyAndShow(index);
-            }
-        });
+            reader.readAsDataURL(file);
+        }
     }
 });

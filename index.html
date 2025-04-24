@@ -6,35 +6,30 @@
     <title>Image Classification</title>
     <link rel="stylesheet" href="https://dhbhdrzi4tiry.cloudfront.net/cdn/sites/foundation.min.css">
     <style>
-        /* Bilder auf 400x400px setzen */
         img {
             width: 400px;
             height: 400px;
-            object-fit: cover; /* Damit das Bild gut in das Format passt */
+            object-fit: cover;
         }
-
-        /* Die Canvas-Elemente ebenfalls auf 400x400px setzen */
         canvas {
             width: 400px !important;
             height: 400px !important;
         }
-        /* Ladebalken */
         .loader {
             width: 100%;
-            height: 400px;
+            height: 50px;
             display: flex;
             justify-content: center;
             align-items: center;
             background-color: #f0f0f0;
+            margin-bottom: 1rem;
         }
-
         .progress {
             width: 80%;
             height: 10px;
             background-color: #ddd;
             position: relative;
         }
-
         .progress::after {
             content: '';
             display: block;
@@ -43,97 +38,60 @@
             background-color: #66c2a5;
             animation: load 3s linear infinite;
         }
-
         @keyframes load {
             0% { width: 0%; }
             100% { width: 100%; }
         }
-
-        img.hidden {
-            display: none;
-        }
-
     </style>
 </head>
 <body>
 
-<!-- Top Bar -->
 <div class="top-bar">
     <div class="row">
-        <div class="top-bar-left">
-            <h3>Image Classification - Deep Learning EA 1</h3>
-        </div>
-        <div class="top-bar-right">
-            <p>Friederike Buchner</p>
-        </div>
+        <div class="top-bar-left"><h3>Image Classification - Deep Learning EA1</h3></div>
+        <div class="top-bar-right"><p>Sommersemester 2025</p></div>
     </div>
 </div>
 
 <div class="column row">
     <hr>
-
-    <!-- Tabs -->
     <ul class="tabs" data-tabs id="example-tabs">
-        <li class="tabs-title is-active"><a href="#panel1" aria-selected="true">Beispielbild 1</a></li>
-        <li class="tabs-title"><a href="#panel2">Beispielbild 2</a></li>
-        <li class="tabs-title"><a href="#panel3">Beispielbild 3</a></li>
+        <li class="tabs-title is-active"><a href="#tab-korrekt" aria-selected="true">Korrekt</a></li>
+        <li class="tabs-title"><a href="#tab-falsch">Falsch</a></li>
+        <!-- Neuer Tab-Eintrag -->
+        <li class="tabs-title"><a href="#tab-upload">Upload</a></li>
     </ul>
 
-    <!-- Tab-Panels -->
-    <div class="tabs-panel is-active" id="panel1">
-        <div class="row">
-            <div class="loader" id="loader-1">
-                <div class="progress" id="progress-1"></div>
-            </div>
-            <div class="column medium-6" id="canvas-container-1">
-                <img id="image-1" alt="Beispielbild 1" class="hidden">
-            </div>
-            <div class="column medium-6">
-                <canvas id="confidenceChart-1" width="400" height="400"></canvas>
-            </div>
-        </div>
+    <!-- KORREKT -->
+    <div class="tabs-panel is-active" id="tab-korrekt">
+        <div class="loader" id="loader-korrekt"><div class="progress"></div></div>
+        <div id="korrekt-container"></div>
     </div>
 
-    <div class="tabs-panel" id="panel2">
-        <div class="row">
-            <div class="loader" id="loader-2">
-                <div class="progress" id="progress-2"></div>
-            </div>
-            <div class="column medium-6" id="canvas-container-2">
-                <img id="image-2" alt="Beispielbild 2" class="hidden">
-            </div>
-            <div class="column medium-6">
-                <canvas id="confidenceChart-2" width="400" height="400"></canvas>
-            </div>
-        </div>
+    <!-- FALSCH -->
+    <div class="tabs-panel" id="tab-falsch">
+        <div class="loader" id="loader-falsch"><div class="progress"></div></div>
+        <div id="falsch-container"></div>
     </div>
 
-    <div class="tabs-panel" id="panel3">
-        <div class="row">
-            <div class="loader" id="loader-3">
-                <div class="progress" id="progress-3"></div>
-            </div>
-            <div class="column medium-6" id="canvas-container-3">
-                <img id="image-3" alt="Beispielbild 3" class="hidden">
-            </div>
-            <div class="column medium-6">
-                <canvas id="confidenceChart-3" width="400" height="400"></canvas>
-            </div>
+    <!-- Neuer Tab-Inhalt -->
+    <div class="tabs-panel" id="tab-upload">
+        <div class="loader" id="loader-upload" style="display: none;"><div class="progress"></div></div>
+        <div id="upload-dropzone"
+             style="border: 2px dashed #aaa; padding: 2rem; text-align: center; margin-bottom: 1rem;">
+            <p>Ziehe ein Bild hierher oder klicke zum Hochladen.</p>
+            <input type="file" id="upload-input" accept="image/*" style="display: none"/>
         </div>
+        <div id="upload-container"></div>
     </div>
 
 </div>
-</div>
 
-<!-- Footer -->
 <div class="row column">
     <hr>
-    <ul class="menu">
-        <li class="float-right">© F. Buchner 2025</li>
-    </ul>
+    <ul class="menu"><li class="float-right">© F. Buchner 2025</li></ul>
 </div>
 
-<!-- Scripts -->
 <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
 <script src="https://dhbhdrzi4tiry.cloudfront.net/cdn/sites/foundation.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.min.js"></script>
