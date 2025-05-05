@@ -135,7 +135,7 @@
 // Diese Funktion stellt sicher, dass die Bilder und die Charts korrekt geladen werden
     function setupGroup(group) {
         const imageGroups = {
-            korrekt: ['flamingo4.jpg', 'red_panda.jpg', 'stingray.jpg'],
+            korrekt: ['flamingo4.jpg', 'red_panda.jpg', 'moschee.jpg'],
             falsch: ['wellensittich.jpg', 'child.jpg', 'giraffe.jpg'],
         };
 
@@ -210,6 +210,7 @@
 
         // Stelle sicher, dass der Klick auf die Dropzone das Datei-Input-Feld auslöst
         uploadDropzone.on('click', function () {
+            console.log("hier wurde geklickt");
             fileInput.click(); // Öffnet den Datei-Dialog
         });
 
@@ -245,16 +246,6 @@
             img.width = 300;
             img.onload = function () {
                 container.empty(); // Lösche den vorherigen Inhalt
-                //
-                // // Bild in den Container hinzufügen
-                // container.append(img);
-                //
-                // // Canvas für das Bild erstellen und hinzufügen
-                // const canvas = document.createElement('canvas');
-                // canvas.width = 400;
-                // canvas.height = 400;
-                // container.append(canvas); // Canvas zum Container hinzufügen
-
                 // Klassifizieren und Diagramm anzeigen
                 showImageInLayout('upload',img,container,0);
                 //classifyAndShow('upload', 0, img, canvas);
