@@ -77,10 +77,8 @@
             <li class="tabs-title is-active"><a href="#tab-korrekt" aria-selected="true">Korrekt</a></li>
             <li class="tabs-title"><a href="#tab-falsch">Falsch</a></li>
             <li class="tabs-title"><a href="#tab-upload">Upload</a></li>
+            <li class="tabs-title"><a href="#tab-diskussion">Diskussion</a></li>
         </ul>
-
-
-
 
         <!-- KORREKT -->
         <div class="tabs-panel is-active" id="tab-korrekt">
@@ -103,6 +101,30 @@
             <div id="upload-container"></div>
         </div>
 
+        <!-- DISKUSSION -->
+        <div class="tabs-panel" id="tab-diskussion">
+            <div class="callout secondary">
+                <h4>Diskussion der Klassifikationsergebnisse</h4>
+                <p>
+                    Die Qualität der Klassifikation hängt stark davon ab, ob die abgebildeten Objekte in den Trainingsdaten des Modells enthalten waren.
+                    Das verwendete ml5.js-Framework basiert auf einem vortrainierten MobileNet-Modell, dessen Klassen aus dem ImageNet-Datensatz stammen.
+                    So konnte zum Beispiel ein Flamingo und ein Roter Panda korrekt erkannt werden, da diese Tierarten explizit im Trainingsset enthalten sind.
+                    Besonders gut funktioniert die Erkennung, wenn das Objekt zentral im Bild positioniert und visuell dominant ist.
+                </p>
+                <p>
+                    Umgekehrt wurden ein Wellensittich und eine Giraffe nicht richtig klassifiziert – vermutlich, weil diese nicht zu den gelernten Klassen gehören.
+                    Die Klassifikation wird zusätzlich erschwert, wenn der Hintergrund unruhig ist oder das Zielobjekt nur teilweise zu sehen ist.
+                <p> </p>
+
+                    Ein auffälliges Beispiel für Fehlklassifikation ist das Bild eines Babys auf einer Couch, bei dem fälschlicherweise ein "Nippel" erkannt wurde.
+                    Dieser Fehler ist zwar kurios, lässt sich jedoch auf die Trainingsdaten zurückführen, in denen vermutlich viele Bilder säugender Babys enthalten waren.
+                    Dadurch kann das Modell Muster erkennen, die statistisch häufig vorkommen, aber im konkreten Bild gar nicht vorhanden sind.
+                </p>
+                <p>
+                    Insgesamt zeigt sich, dass die Erkennungsgenauigkeit eng mit den gelernten Klassen und der Klarheit des Bildinhalts zusammenhängt.
+                </p>
+            </div>
+        </div>
 
 
     </div>

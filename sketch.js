@@ -192,7 +192,7 @@
             const activeTabHref = $(this).find('li.is-active a').attr('href'); // z. B. #panel2
             const group = activeTabHref.replace('#tab-', '');
 
-            if (group === 'upload') {
+            if (group === 'upload' || group === 'diskussion') {
                 // Der Upload-Tab benötigt keine Funktion zum Vorab-Laden der Bilder
                 return;
             } else {
