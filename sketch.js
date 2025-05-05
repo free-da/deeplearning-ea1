@@ -57,6 +57,8 @@
 
     let classifier;
 
+    const initializedGroups = new Set();
+
     // Zufällige Nachricht anzeigen
     function showRandomMessage() {
         const [main, sub] = loadingMessages[Math.floor(Math.random() * loadingMessages.length)];
@@ -133,11 +135,10 @@
 // Diese Funktion stellt sicher, dass die Bilder und die Charts korrekt geladen werden
     function setupGroup(group) {
         const imageGroups = {
-            korrekt: ['flamingo4.jpg', 'flamingo2.jpg', 'flamingo3.jpg'],
-            falsch: ['wellensittich.jpg', 'wellensittich2.jpg', 'wellensittich3.jpg'],
+            korrekt: ['flamingo4.jpg', 'red_panda.jpg', 'stingray.jpg'],
+            falsch: ['wellensittich.jpg', 'child.jpg', 'giraffe.jpg'],
         };
 
-        const initializedGroups = new Set();
         if (initializedGroups.has(group)) return;
         initializedGroups.add(group);
 
