@@ -163,7 +163,6 @@
         });
     }
 
-    // Klassifizieren und Diagramm anzeigen
     function classifyAndShow(group, index, img, canvas) {
         classifier.classify(img)
             .then(results => {
@@ -197,6 +196,7 @@
                         scales: {
                             x: {
                                 beginAtZero: true,
+                                max: 1, // Maximale Skala auf 1 (100%) setzen
                                 ticks: { precision: 2 }
                             },
                             y: {
@@ -209,7 +209,6 @@
                         }
                     }
                 });
-
                 // 📎 Fußnoten-Container erzeugen
                 const labelContainerId = `label-container-${group}-${index}`;
                 let labelContainer = document.getElementById(labelContainerId);
@@ -231,9 +230,6 @@
                 console.error('Fehler bei Klassifikation:', err);
             });
     }
-
-
-
 
     // Event-Listener für Tab-Wechsel
     function setupTabListener(tabsContainer) {
