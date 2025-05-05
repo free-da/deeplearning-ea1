@@ -59,6 +59,13 @@
 
     const initializedGroups = new Set();
 
+    // charts[group][index] enthält den Chart pro Bild
+    const charts = {
+        korrekt: [],
+        falsch: [],
+        upload: []
+    };
+
     // Zufällige Nachricht anzeigen
     function showRandomMessage() {
         const [main, sub] = loadingMessages[Math.floor(Math.random() * loadingMessages.length)];
@@ -158,15 +165,16 @@
 
     // Klassifizieren und Diagramm anzeigen
     function classifyAndShow(group, index, img, canvas) {
-        // Klassifikationslogik wie gehabt
         classifier.classify(img)
             .then(results => {
                 const labels = results.map(r => r.label);
                 const confidences = results.map(r => r.confidence);
 
                 const ctx = canvas.getContext('2d');
+                canvas.height = 120; // Optional, falls Layout konsistent bleiben soll
+
                 const chart = new Chart(ctx, {
-                    type: 'pie',
+                    type: 'bar',
                     data: {
                         labels: labels,
                         datasets: [{
@@ -176,15 +184,56 @@
                         }]
                     },
                     options: {
+                        indexAxis: 'y',
                         responsive: true,
-                        animation: { animateScale: true }
+                        maintainAspectRatio: false,
+                        plugins: {
+                            tooltip: {
+                                mode: 'nearest',
+                                intersect: false
+                            },
+                            legend: { display: false }
+                        },
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                ticks: { precision: 2 }
+                            },
+                            y: {
+                                ticks: {
+                                    callback: function(label) {
+                                        return label.length > 18 ? label.slice(0, 16) + '…' : label;
+                                    }
+                                }
+                            }
+                        }
                     }
                 });
+
+                // 📎 Fußnoten-Container erzeugen
+                const labelContainerId = `label-container-${group}-${index}`;
+                let labelContainer = document.getElementById(labelContainerId);
+
+                if (!labelContainer) {
+                    labelContainer = document.createElement('div');
+                    labelContainer.id = labelContainerId;
+                    labelContainer.className = 'chart-labels small-text';
+                    canvas.parentNode.appendChild(labelContainer);
+                }
+
+                // Inhalt mit Label – Prozentanzeige einfügen
+                labelContainer.innerHTML = labels.map((label, i) => {
+                    const percentage = (confidences[i] * 100).toFixed(1) + '%';
+                    return `<div><strong>${i + 1}.</strong> ${label} – ${percentage}</div>`;
+                }).join('');
             })
             .catch(err => {
                 console.error('Fehler bei Klassifikation:', err);
             });
     }
+
+
+
 
     // Event-Listener für Tab-Wechsel
     function setupTabListener(tabsContainer) {

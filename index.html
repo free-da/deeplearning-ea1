@@ -46,10 +46,11 @@
             100% { transform: rotate(360deg); }
         }
 
-        .loading-text {
-            max-width: 400px;
-            font-size: 1rem;
-            line-height: 1.4;
+        .chart-labels {
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+            color: #555;
+            line-height: 1.3;
         }
 
     </style>
@@ -78,6 +79,7 @@
             <li class="tabs-title"><a href="#tab-falsch">Falsch</a></li>
             <li class="tabs-title"><a href="#tab-upload">Upload</a></li>
             <li class="tabs-title"><a href="#tab-diskussion">Diskussion</a></li>
+            <li class="tabs-title"><a href="#tab-dokumentation">Dokumentation</a></li>
         </ul>
 
         <!-- KORREKT -->
@@ -103,28 +105,48 @@
 
         <!-- DISKUSSION -->
         <div class="tabs-panel" id="tab-diskussion">
-            <div class="callout secondary">
-                <h4>Diskussion der Klassifikationsergebnisse</h4>
-                <p>
-                    Die Qualität der Klassifikation hängt stark davon ab, ob die abgebildeten Objekte in den Trainingsdaten des Modells enthalten waren.
-                    Das verwendete ml5.js-Framework basiert auf einem vortrainierten MobileNet-Modell, dessen Klassen aus dem ImageNet-Datensatz stammen.
-                    So konnte zum Beispiel ein Flamingo und ein Roter Panda korrekt erkannt werden, da diese Tierarten explizit im Trainingsset enthalten sind.
-                    Besonders gut funktioniert die Erkennung, wenn das Objekt zentral im Bild positioniert und visuell dominant ist.
-                </p>
-                <p>
-                    Umgekehrt wurden ein Wellensittich und eine Giraffe nicht richtig klassifiziert – vermutlich, weil diese nicht zu den gelernten Klassen gehören.
-                    Die Klassifikation wird zusätzlich erschwert, wenn der Hintergrund unruhig ist oder das Zielobjekt nur teilweise zu sehen ist.
-                <p> </p>
+            <h4>Diskussion der Klassifikationsergebnisse</h4>
+            <p>
+                Die Qualität der Klassifikation hängt stark davon ab, ob die abgebildeten Objekte in den Trainingsdaten des Modells enthalten waren.
+                Das verwendete ml5.js-Framework basiert auf einem vortrainierten MobileNet-Modell, dessen Klassen aus dem ImageNet-Datensatz stammen.
+                So konnte zum Beispiel ein Flamingo und ein Roter Panda korrekt erkannt werden, da diese Tierarten explizit im Trainingsset enthalten sind.
+                Besonders gut funktioniert die Erkennung,wenn das Objekt zentral im Bild positioniert und visuell dominant ist.
+            </p>
+            <p>
+                Umgekehrt wurden ein Wellensittich und eine Giraffe nicht richtig klassifiziert – vermutlich, weil diese nicht zu den gelernten Klassen gehören.
+                Die Klassifikation wird zusätzlich erschwert, wenn der Hintergrund unruhig ist oder das Zielobjekt nur teilweise zu sehen ist.
+            <p> </p>
 
-                    Ein auffälliges Beispiel für Fehlklassifikation ist das Bild eines Babys auf einer Couch, bei dem fälschlicherweise ein "Nippel" erkannt wurde.
-                    Dieser Fehler ist zwar kurios, lässt sich jedoch auf die Trainingsdaten zurückführen, in denen vermutlich viele Bilder säugender Babys enthalten waren.
-                    Dadurch kann das Modell Muster erkennen, die statistisch häufig vorkommen, aber im konkreten Bild gar nicht vorhanden sind.
-                </p>
-                <p>
-                    Insgesamt zeigt sich, dass die Erkennungsgenauigkeit eng mit den gelernten Klassen und der Klarheit des Bildinhalts zusammenhängt.
-                </p>
+                Ein auffälliges Beispiel für Fehlklassifikation ist das Bild eines Babys auf einer Couch, bei dem fälschlicherweise ein "Nippel" erkannt wurde.
+                Dieser Fehler ist zwar kurios, lässt sich jedoch auf die Trainingsdaten zurückführen, in denen vermutlich viele Bilder säugender Babys enthalten waren.
+                Dadurch kann das Modell Muster erkennen, die statistisch häufig vorkommen, aber im konkreten Bild gar nicht vorhanden sind.
+            </p>
+            <p>
+                Insgesamt zeigt sich, dass die Erkennungsgenauigkeit eng mit den gelernten Klassen und der Klarheit des Bildinhalts zusammenhängt.
+            </p>
+        </div>
+
+        <!-- DOKUMENTATION -->
+        <div class="tabs-panel" id="tab-dokumentation">
+            <div class="grid-container">
+                <h4>Technische Dokumentation</h4>
+                <p><strong>ml5.js:</strong> Dieses Framework wurde für die einfache Einbindung vortrainierter Modelle wie MobileNet verwendet. Es abstrahiert TensorFlow.js und erlaubt uns, mit wenigen Zeilen Code Bilder zu klassifizieren. Besonders hilfreich war die eingebaute Methode <code>imageClassifier</code>.</p>
+                <p><strong>p5.js:</strong> Dieses kreative Coding-Framework wurde vorrangig zur Darstellung und Manipulation von Bildern genutzt. Es erleichtert das Laden und Anzeigen von Bildern im Canvas-Umfeld, wurde hier jedoch nur indirekt über ml5 verwendet.</p>
+                <p><strong>Foundation Sites:</strong> Dieses CSS- und JS-Framework wurde zur Strukturierung der Seite in Tabs verwendet. Durch die einfache Initialisierung via <code>$(document).foundation()</code> konnten wir die Benutzeroberfläche klar gliedern und gezielt Inhalte pro Tab laden.</p>
+                <p><strong>Chart.js:</strong> Zur Visualisierung der Klassifikationsergebnisse diente Chart.js. Es zeigt die drei wahrscheinlichsten Klassen in einem übersichtlichen Kreisdiagramm an. Besonders nützlich war die Möglichkeit, alte Charts per <code>destroy()</code> zurückzusetzen.</p>
+                <p>Zusätzlich wurde nativ JavaScript (DOM-Manipulation, Event-Handling) genutzt, um dynamisch Bilder pro Tab zu laden und Events wie Datei-Uploads zu behandeln.</p>
+
+                <h4>Fachliche Diskussion</h4>
+                <p>Die Logik des Klassifikators basiert auf dem Ansatz, pro Tab jeweils drei Bilder zu laden und diese beim erstmaligen Anzeigen zu klassifizieren. Dies reduziert initiale Ladezeiten und erlaubt Animationen gezielt einzusetzen.</p>
+                <p>Ein zentrales Element der Lösung ist die Initialisierung des MobileNet-Klassifikators über ml5.js. Sobald dieser geladen ist, wird die Benutzeroberfläche vorbereitet und erste Bilder (z. B. im „Korrekt“-Tab) werden klassifiziert.</p>
+                <p>Die Implementierung achtet darauf, dass Bilder nur bei Bedarf klassifiziert werden, was durch das Foundation-Tab-Event <code>change.zf.tabs</code> gesteuert wird.</p>
+                <p>Der Einsatz von Chart.js erlaubt eine intuitive Darstellung der Konfidenzwerte, was die Nachvollziehbarkeit der Klassifikation unterstützt.</p>
+                <p>Besonderer Wert wurde auf Nutzererfahrung gelegt: Während der Klassifikator geladen wird, erscheinen Ladehinweise. Auch beim Dateiupload wird ein Bild sofort angezeigt und analysiert – dies geschieht ohne Neuladen der Seite.</p>
+                <p>Die Klassifikation basiert auf einem vortrainierten ImageNet-Modell (MobileNet). Dies erklärt, warum nur bestimmte Kategorien erkannt werden können. Quellen und Klassennamen sind unter anderem im <a href="https://www.kaggle.com/c/imagenet-object-localization-challenge/data?select=LOC_synset_mapping.txt" target="_blank">ImageNet-Synset Mapping</a> dokumentiert.</p>
+                <p>Die Lösung zeigt, dass moderne JavaScript-Frameworks wie ml5 und Chart.js auch ohne tiefes Machine Learning-Know-how leistungsstarke Ergebnisse ermöglichen, wenn sie durch eine sinnvolle UI-Struktur begleitet werden.</p>
             </div>
         </div>
+
 
 
     </div>
